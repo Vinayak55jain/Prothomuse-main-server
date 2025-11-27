@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"prothomuse-server/internal/handler"
@@ -67,6 +68,9 @@ func main() {
 	} else {
 		log.Println("✅ Users table ready")
 	}
+
+	// Debug: print users table columns to help diagnose schema issues
+	printUsersTableColumns(db)
 
 	authService := services.NewAuthService(userRepo)
 	authHandler := handler.NewAuthHandler(authService)
@@ -137,6 +141,36 @@ func main() {
 	log.Println("Waiting for connections...")
 
 	http.ListenAndServe(":8080", nil)
+}
+
+// printUsersTableColumns logs the columns present in the `users` table.
+// This is a debug helper to diagnose schema mismatches between code and DB.
+func printUsersTableColumns(db *sql.DB) {
+	rows, err := db.Query(`SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'users' ORDER BY ordinal_position`)
+	if err != nil {
+		log.Printf("Error querying information_schema for users table: %v", err)
+		return
+	}
+	defer rows.Close()
+
+	cols := []string{}
+	for rows.Next() {
+		var name, dtype string
+		if err := rows.Scan(&name, &dtype); err != nil {
+			log.Printf("Error scanning information_schema row: %v", err)
+			return
+		}
+		cols = append(cols, name+"("+dtype+")")
+	}
+	if err := rows.Err(); err != nil {
+		log.Printf("Rows error: %v", err)
+		return
+	}
+	if len(cols) == 0 {
+		log.Println("No columns found for table 'users' — table may not exist in this database/schema")
+		return
+	}
+	log.Printf("users table columns: %s", strings.Join(cols, ", "))
 }
 
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {

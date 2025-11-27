@@ -22,13 +22,13 @@ func (s *AuthService) RegisterUser(req model.RegisterRequest) (*model.User, erro
 	if err := validateRegisterRequest(req); err != nil {
 		return nil, err
 	}
-	existingUser, err := s.userRepo.GetUserByEmail(req.Email)
-	if err != nil {
-		return nil, err
-	}
-	if existingUser != nil {
-		return nil, errors.New("user with this email already exists")
-	}
+	//existingUser, err := s.userRepo.GetUserByEmail(req.Email)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//if existingUser != nil {
+	//	return nil, errors.New("user with this email already exists")
+//	}
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		log.Printf("error in hashing the password: %v", err)

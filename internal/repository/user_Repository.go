@@ -77,7 +77,8 @@ func (r *userRepository) GetUserByEmail(email string) (*model.User, error) {
 		&user.IsActive,
 		&user.CreatedAt,
 		&user.UpdatedAt,
-	)
+	) 
+	log.Println(user);
 	if err != nil {
 		log.Println("Error fetching user by email:", err)
 		return nil, err
